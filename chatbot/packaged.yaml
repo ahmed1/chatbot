@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: 'chatbot
+
+  Sample SAM Template for chatbot
+
+  '
+Resources:
+  LF0Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://chatbot-cloudformation-template/92831bdc3461d2f3fca9845a72f453e3
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Timeout: 200
+      Events:
+        LF0:
+          Type: Api
+          Properties:
+            Path: /LF0
+            Method: get
+  LF1Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://chatbot-cloudformation-template/c508ae148912fb3ec7cb02b06aac8515
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Timeout: 200
+      Events:
+        LF1:
+          Type: Api
+          Properties:
+            Path: /LF1
+            Method: get
+  LF2Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: s3://chatbot-cloudformation-template/c508ae148912fb3ec7cb02b06aac8515
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Timeout: 200
+      Events:
+        LF2:
+          Type: Api
+          Properties:
+            Path: /LF2
+            Method: get
+Outputs:
+  LF0WorldApi:
+    Description: API Gateway endpoint URL for Prod stage for X World function
+    Value:
+      Fn::Sub: https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/LF0/
+  LF0Function:
+    Description: X World Lambda Function ARN
+    Value:
+      Fn::GetAtt:
+      - LF0Function
+      - Arn
+  LF0FunctionIamRole:
+    Description: Implicit IAM Role created for X World function
+    Value:
+      Fn::GetAtt:
+      - LF0FunctionRole
+      - Arn

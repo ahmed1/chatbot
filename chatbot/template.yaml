@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  chatbot
+
+  Sample SAM Template for chatbot
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+
+
+Resources:
+  LF0Function:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: ./LF0/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Timeout: 200
+      Events:
+        LF0:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /LF0
+            Method: get
+
+  LF1Function:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: ./LF1/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Timeout: 200
+      Events:
+        LF1:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /LF1
+            Method: get
+
+  LF2Function:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: ./LF2/
+      Handler: app.lambda_handler
+      Runtime: python3.7
+      Timeout: 200
+      Events:
+        LF2:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /LF2
+            Method: get
+
+Outputs:
+  # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
+  # Find out more about other implicit resources you can reference within SAM
+  # https://github.com/awslabs/serverless-application-model/blob/master/docs/internals/generated_resources.rst#api
+  LF0WorldApi:
+    Description: "API Gateway endpoint URL for Prod stage for X World function"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/LF0/"
+  LF0Function:
+    Description: "X World Lambda Function ARN"
+    Value: !GetAtt LF0Function.Arn
+  LF0FunctionIamRole:
+    Description: "Implicit IAM Role created for X World function"
+    Value: !GetAtt LF0FunctionRole.Arn
+
+  # LF1Api:
+  #   Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+  #   Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/LF1/"
+  # LF1FUNCTION:
+  #   Description: "LF1 Function will describe later"
+  #   Value: !GetAtt LF1FUNCTION.Arn
+  # LF1FunctionIamRole:
+  #   Description: "Implicit IAM Role created for LF1 function"
+  #   Value: !GetAtt LF1FunctionRole.Arn
+
+  # LF2Api:
+  #   Description: "API Gateway endpoint URL for Prod stage for Hello World function"
+  #   Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/LF3/"
+  # LF2FUNCTION:
+  #   Description: "LF2 Function will describe later"
+  #   Value: !GetAtt LF2FUNCTION.Arn
+  # LF2FunctionIamRole:
+  #   Description: "Implicit IAM Role created for LF2 function"
+  #   Value: !GetAtt LF2FunctionRole.Arn
