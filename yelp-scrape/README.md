@@ -36,4 +36,4 @@ Simply run the code without specifying any arguments:
 
 After populating db.json (in the correct format),
 use the following to put a set of items from a json onto DynamoDB:
-`aws dynamodb batch-write-item --request-items file://aws-requests.json`
+`aws dynamodb batch-write-item --request-items file://db.json`
