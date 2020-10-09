@@ -1,42 +1,81 @@
+import boto3
 import json
+import requests
+from requests_aws4auth import AWS4Auth
+import sys
+region = 'us-east-1' # For example, us-west-1
+service = 'es'
+credentials = boto3.Session().get_credentials()
+awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, service, session_token=credentials.token)
 
-# import requests
+host = 'search-yelp-restaurants-lg4z52z76iaf3lkg54o2jdcj2a.us-east-1.es.amazonaws.com' # For example, search-mydomain-id.us-west-1.es.amazonaws.com
+index = 'restaurants'
+url = 'https://' + host + '/' + index + '/' + '_search'
 
-
+# Lambda execution starts here
 def lambda_handler(event, context):
-    """Sample pure Lambda function
 
-    Parameters
-    ----------
-    event: dict, required
-        API Gateway Lambda Proxy Input Format
+    data = event['body']
+    
+    number_of_people = data['number_of_people']
+    name = data['name']
+    cuisine = data['cuisine']
+    dining_time = data['dining_time']
+    location = data['location']
+    phone_number = data['phone_number']
+    zip_code = data['zip_code']
 
-        Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
+    print('EVENTTTT: ', event)
+    # sys.exit()
+    # Put the user query into the query DSL for more accurate search results.
+    # Note that certain fields are boosted (^).
+    query = {
+      "query": {
+        "match": {
+          "Cuisine": cuisine
+        }
+      }
+    } 
 
-    context: object, required
-        Lambda Context runtime methods and attributes
+    # ES 6.x requires an explicit Content-Type header
+    headers = { "Content-Type": "application/json" }
 
-        Context doc: https://docs.aws.amazon.com/lambda/latest/dg/python-context-object.html
+    # Make the signed HTTP request
+    r = requests.get(url, auth=awsauth, headers=headers, data=json.dumps(query))
 
-    Returns
-    ------
-    API Gateway Lambda Proxy Output Format: dict
-
-        Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
-    """
-
-    # try:
-    #     ip = requests.get("http://checkip.amazonaws.com/")
-    # except requests.RequestException as e:
-    #     # Send some context about this error to Lambda Logs
-    #     print(e)
-
-    #     raise e
-
-    return {
+    # Create the response and add some extra content to support CORS
+    response = {
         "statusCode": 200,
-        "body": json.dumps({
-            "message": "hello world",
-            # "location": ip.text.replace("\n", "")
-        }),
+        "headers": {
+            "Access-Control-Allow-Origin": '*'
+        },
+        "isBase64Encoded": False
     }
+    print(r)
+    # Add the search results to the response
+    r = r.json()
+    
+    business_id = r['hits']['hits'][0]['_source']['RestaurantID']
+    
+    
+    # query dynamodb
+    client = boto3.client('dynamodb')
+    response = client.get_item(TableName='yelp-restaurants', Key = {'BusinessId' : {'S': business_id }} )
+    print("RESPONSEEE DYNAMO", response)
+
+    recom_busin = response['item']
+
+    recom_name = recom_busin['Name']['S']
+    recom_address = recom_busin['Address']['S']
+
+    # final message for sns
+    notification = "Hello! Here is my {} restaurant \
+        suggestions for {} people, for today at {}: 1. \
+        {}, located at {}.".format(cuisine.capitalize(), number_of_people,
+        dining_time, recom_name, recom_address)
+    
+
+    # invoke SNS
+    client = boto3.client('sns')
+    
+    return r

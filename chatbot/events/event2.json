@@ -1,0 +1,67 @@
+{
+    'messageVersion': '1.0', 
+    'invocationSource': 'FulfillmentCodeHook', 
+    'userId': 'lol523b3rqoxy2qznq1ck7e9nsvurs15', 
+    'sessionAttributes': {}, 
+    'requestAttributes': None, 
+    'bot': {
+        'name': 'ConceirgeBot', 
+        'alias': '$LATEST', 
+        'version': '$LATEST'
+    }, 
+    'outputDialogMode': 'Text', 
+    'currentIntent': {
+        'name': 'DiningSuggestionsIntent', 
+        'slots': {
+            'number_of_people': None, 
+            'name': None, 
+            'cuisine': 'Chinese', 
+            'dining_time': None, 
+            'location': None, 
+            'phone_number': None, 
+            'zip_code': None
+        }, 
+        'slotDetails': {
+            'number_of_people': None, 
+            'name': None, 'cuisine': {
+                'resolutions': [
+                    {'value': 'chinese'}
+                ], 'originalValue': 'Chinese'
+            }, 'dining_time': None, 
+            'location': None, 
+            'phone_number': None, 
+            'zip_code': None
+        }, 
+        'confirmationStatus': 'None', 
+        'nluIntentConfidenceScore': 1.0
+    },  'alternativeIntents': [
+            {
+                'name': 'AMAZON.FallbackIntent', 
+                'slots': {}, 
+                'slotDetails': {}, 
+                'confirmationStatus': 'None', 
+                'nluIntentConfidenceScore': None
+            }, 
+            {
+                'name': 'TodaysWeather', 
+                'slots': {'city': None}, 
+                'slotDetails': {'city': None}, 
+                'confirmationStatus': 'None', 'nluIntentConfidenceScore': 0.6
+            }, 
+            {
+                'name': 'ThankYouIntent', 'slots': {}, 
+                'slotDetails': {},
+                'confirmationStatus': 'None', 
+                'nluIntentConfidenceScore': 0.46}, 
+            {
+                'name': 'GreetingIntent', 
+                'slots': {'Name': None},
+                'slotDetails': {'Name': None}, 
+                'confirmationStatus': 'None', 
+                'nluIntentConfidenceScore': 0.45
+            }
+        ], 
+        'inputTranscript': 'Chinese', 
+        'recentIntentSummaryView': [
+            {
+                'intentName': 'DiningSuggestionsIntent', 'checkpointLabel': None, 'slots': {'number_of_people': None, 'name': None, 'cuisine': None, 'dining_time': None, 'location': None, 'phone_number': None, 'zip_code': None}, 'confirmationStatus': 'None', 'dialogActionType': 'ElicitSlot', 'fulfillmentState': None, 'slotToElicit': 'cuisine'}, {'intentName': 'GreetingIntent', 'checkpointLabel': None, 'slots': {'Name': None}, 'confirmationStatus': 'None', 'dialogActionType': 'ElicitSlot', 'fulfillmentState': None, 'slotToElicit': 'Name'}], 'sentimentResponse': None, 'kendraResponse': None}

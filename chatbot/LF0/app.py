@@ -1,15 +1,19 @@
 import json
-
+import boto3
 # import requests
 
 
 def lambda_handler(event, context):
-    print('EVENTTTT: ', event)
-
-
-    print('AHMED')
-
-    print('CONTEXTTTT', context)
+    
+    message = event['messages'][0]['unstructured']['text']
+    print('MESSAGE LOGGED: ', message)
+    # send message to Lex
+    client = boto3.client('lex-runtime')
+    response = client.post_text(botName='ConceirgeBot', botAlias = 'ConceirgeBot', userId='string', 
+                inputText = message)
+    print('RESPONSE::: ', response)
+    res = response['message']
+    print('MESSSAGE::::', res)
     """Sample pure Lambda function
 
     Parameters
@@ -38,7 +42,7 @@ def lambda_handler(event, context):
     #     print(e)
 
     #     raise e
-    msg = "Hey, What's up dude. I’m still under development. Please come back later."
+    # msg = "Hey, What's up dude. I’m still under development. Please come back later."
     return {
         "statusCode": 200,
         'headers': {
@@ -46,5 +50,5 @@ def lambda_handler(event, context):
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'OPTIONS,POST'
         },
-        "body": msg
+        "body": str(res)
     }

@@ -1,42 +1,63 @@
 import json
 
 # import requests
+import boto3
+import sys
+
+
+def get_dining_details(slots):
+
+    number_of_people = slots['number_of_people']
+    name = slots['name']
+    cuisine = slots['cuisine']
+    dining_time = slots['dining_time']
+    location = slots['location']
+    phone_number = slots['phone_number']
+    zip_code = slots['zip_code']
+
 
 
 def lambda_handler(event, context):
-    """Sample pure Lambda function
-
-    Parameters
-    ----------
-    event: dict, required
-        API Gateway Lambda Proxy Input Format
-
-        Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
-
-    context: object, required
-        Lambda Context runtime methods and attributes
-
-        Context doc: https://docs.aws.amazon.com/lambda/latest/dg/python-context-object.html
-
-    Returns
-    ------
-    API Gateway Lambda Proxy Output Format: dict
-
-        Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
     """
 
-    # try:
-    #     ip = requests.get("http://checkip.amazonaws.com/")
-    # except requests.RequestException as e:
-    #     # Send some context about this error to Lambda Logs
-    #     print(e)
+    """
 
-    #     raise e
+    client = boto3.client('sqs')
 
-    return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "message": "hello world",
-            # "location": ip.text.replace("\n", "")
-        }),
-    }
+
+
+    cur_intent = event['currentIntent']['name']
+    if cur_intent == 'DiningSuggestionsIntent':
+        slots = event['currentIntent']['slots']
+        # dining_details = get_dining_details(slots)
+    else:
+        print('SOMETHING IS BROKEN')
+        sys.exit()
+    
+
+
+    # call sqs
+
+    queue_url = 'https://sqs.us-east-1.amazonaws.com/922059106485/chatbot-queue'
+    message = json.dumps(slots)
+    print(message)
+    response = client.send_message(QueueUrl = queue_url, MessageBody=message)
+
+
+    print("RESPONSE FROM LEFT SIDE SQS", response)
+
+
+
+
+
+
+    # print('EVENTTT', event)
+
+    # return {
+    #     "statusCode": 200,
+    #     "body": json.dumps({
+    #         "message": "hello world",
+    #         # "location": ip.text.replace("\n", "")
+    #     }),
+    # }
+    return "I will look in my directory for a place that matches your needs and get back to you shortly via SMS with a recommendation."
