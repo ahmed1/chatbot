@@ -1,0 +1,19 @@
+{
+    "yelp-restaurants": [
+        {
+            "PutRequest": {
+                "Item": {
+                    "BusinessId": {"S":"myIDblahblahblah"},
+                    "Address": {"S":"1 Times Square, New York, NY"},
+                    "Latitude": {"N":"40.743434"},
+                    "Longitude": {"N":"-73.234324"},
+                    "Cuisine": {"S":"chinese"},
+                    "Name": {"S":"Ted's Diner"},
+                    "NumReviews": {"N":"3"},
+                    "Rating": {"N":"1.0"},
+                    "Zipcode": {"N": "10001"}
+                }
+            }
+        }
+    ]
+}
