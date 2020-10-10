@@ -65,3 +65,48 @@
         'recentIntentSummaryView': [
             {
                 'intentName': 'DiningSuggestionsIntent', 'checkpointLabel': None, 'slots': {'number_of_people': None, 'name': None, 'cuisine': None, 'dining_time': None, 'location': None, 'phone_number': None, 'zip_code': None}, 'confirmationStatus': 'None', 'dialogActionType': 'ElicitSlot', 'fulfillmentState': None, 'slotToElicit': 'cuisine'}, {'intentName': 'GreetingIntent', 'checkpointLabel': None, 'slots': {'Name': None}, 'confirmationStatus': 'None', 'dialogActionType': 'ElicitSlot', 'fulfillmentState': None, 'slotToElicit': 'Name'}], 'sentimentResponse': None, 'kendraResponse': None}
+
+
+
+
+
+
+                {
+                    'Item': 
+                    {
+                        'Address': 
+                        {
+                            'S': '1 Times Square, New York, NY'
+                        },
+                        'NumReviews': 
+                        {
+                            'N': '3'
+                        }, 'Cuisine': 
+                        {
+                            'S': 'chinese'
+                        }, 
+                            'Longitude': 
+                        {
+                            'N': '-73.234324'
+                        }, 
+                            'BusinessId': 
+                        {
+                            'S': 'myIDblahblahblah'
+                        },
+                             'Latitude': 
+                        {
+                            'N': '40.743434'
+                        }, 
+                            'Zipcode': 
+                        {
+                            'N': '10001'
+                        }, 
+                            'Rating': 
+                        {
+                            'N': '1'
+                        }, 'Name': 
+                        {
+                            'S': "Ted's Diner"
+                        }
+                    }
+                }

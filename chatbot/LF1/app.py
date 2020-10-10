@@ -49,15 +49,18 @@ def lambda_handler(event, context):
 
 
 
-
+    ret = {
+        "sessionAttributes": {},
+        "dialogAction": {
+            "type": "Close",
+            "fulfillmentState": "Fulfilled",
+            "message" : {
+                "contentType" : "PlainText",
+                "content" : "I will look in my directory for a place that matches your needs and get back to you shortly via SMS with a recommendation."
+            }
+        }
+    }
 
     # print('EVENTTT', event)
 
-    # return {
-    #     "statusCode": 200,
-    #     "body": json.dumps({
-    #         "message": "hello world",
-    #         # "location": ip.text.replace("\n", "")
-    #     }),
-    # }
-    return "I will look in my directory for a place that matches your needs and get back to you shortly via SMS with a recommendation."
+    return ret

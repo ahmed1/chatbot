@@ -22,7 +22,7 @@ Resources:
   LF1Function:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://chatbot-cloudformation-template/3c53935e1e6d526bd81deb9c9cf5b5fe
+      CodeUri: s3://chatbot-cloudformation-template/9a535ed25ec70b6a8ff7ada06e575418
       Handler: app.lambda_handler
       Runtime: python3.7
       Timeout: 200
@@ -35,7 +35,7 @@ Resources:
   LF2Function:
     Type: AWS::Serverless::Function
     Properties:
-      CodeUri: s3://chatbot-cloudformation-template/fb66387e428522ea3ac7a1b944d3c357
+      CodeUri: s3://chatbot-cloudformation-template/04d6f9f1c669b5e64373ade7037b1907
       Handler: app.lambda_handler
       Runtime: python3.7
       Timeout: 200

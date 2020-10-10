@@ -14,9 +14,17 @@ url = 'https://' + host + '/' + index + '/' + '_search'
 
 # Lambda execution starts here
 def lambda_handler(event, context):
+    print("EVENTTT: ", event)
+    data = event['Records'][0]['body']
 
-    data = event['body']
+
+    data = data.replace('\n', ' ')
+    print('DATAAA: /{}/'.format(data), type(data))
     
+    data = dict(eval(data))
+
+    print('DATAAA: /{}/'.format(data), type(data))
+
     number_of_people = data['number_of_people']
     name = data['name']
     cuisine = data['cuisine']
@@ -63,19 +71,18 @@ def lambda_handler(event, context):
     response = client.get_item(TableName='yelp-restaurants', Key = {'BusinessId' : {'S': business_id }} )
     print("RESPONSEEE DYNAMO", response)
 
-    recom_busin = response['item']
+    recom_busin = response['Item']
 
     recom_name = recom_busin['Name']['S']
     recom_address = recom_busin['Address']['S']
 
     # final message for sns
-    notification = "Hello! Here is my {} restaurant \
-        suggestions for {} people, for today at {}: 1. \
-        {}, located at {}.".format(cuisine.capitalize(), number_of_people,
-        dining_time, recom_name, recom_address)
+    notification = "Hello {}! Here is my {} restaurant suggestions for {} people, for today at {}: 1. {}, located at {}.".format(name.capitalize(), 
+    cuisine.capitalize(), number_of_people, dining_time, recom_name, recom_address)
     
 
     # invoke SNS
     client = boto3.client('sns')
-    
+    client.publish(PhoneNumber='+1' + phone_number, Message = notification)
+
     return r
