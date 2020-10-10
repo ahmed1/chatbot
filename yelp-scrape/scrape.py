@@ -48,6 +48,7 @@ def build_item_dic(biz, cuisine):
     item["Zipcode"] = {"N": biz["location"]["zip_code"]}
     item["Latitude"] = {"N": biz["coordinates"]["latitude"]}
     item["Longitude"] = {"N": biz["coordinates"]["longitude"]}
+    
 
     biz_record["PutRequest"]["Item"] = item
     return biz_record
