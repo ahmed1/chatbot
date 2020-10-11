@@ -10,11 +10,11 @@ SEARCH_PATH = '/v3/businesses/search'
 BUSINESS_PATH = '/v3/businesses/'  # Business ID will come after slash.
 
 # Define some globals
-SEARCH_LIMIT = 10
+SEARCH_LIMIT = 50
 OFFSET = 1
 RATING_SORT = 'rating'
 RATING_CUTOFF = 3.5
-MAX_BUSINESS_COUNT_PER_CUISINE = 20 # later, change to 1100
+MAX_BUSINESS_COUNT_PER_CUISINE = 1100 # later, change to 1100
 
 # Cities: (add more later if we want to expand)
 CITIES = {
@@ -31,5 +31,5 @@ cuisines = {
         'indian',
         'italian',
         'burgers',
-        'pizza'
+        'pizza',
 }
