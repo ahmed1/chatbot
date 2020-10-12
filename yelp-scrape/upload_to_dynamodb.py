@@ -1,6 +1,8 @@
 from decimal import Decimal
 import json
 import boto3
+import datetime
+
 
 def load_restaurants(restaurants, dynamodb=None):
     if not dynamodb:
@@ -8,7 +10,9 @@ def load_restaurants(restaurants, dynamodb=None):
 
     table = dynamodb.Table('yelp-restaurants')
     for restaurant in restaurants:
+        restaurant["insertedAtTimestamp"] = str(datetime.datetime.now())
         table.put_item(Item=restaurant)
+
 
 if __name__ == '__main__':
     

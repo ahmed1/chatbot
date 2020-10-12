@@ -19,10 +19,10 @@ def write_to_json(dic):
         json.dump(dic, f, indent=2)
 
 
-#def open_memo(filename):
-#    with open(filename, 'w+') as f: # technically just reading, but need to create if it doesn't yet exist
-#        memo = f.read().splitlines()
-#        return memo
+def open_memo(filename):
+    with open(filename, 'w+') as f: # technically just reading, but need to create if it doesn't yet exist
+        memo = f.read().splitlines()
+        return memo
 
 
 def append_to_memo(item_to_append):
