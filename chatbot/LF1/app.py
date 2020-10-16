@@ -79,8 +79,8 @@ def try_ex(func):
 
 def isvalid_cuisine(cuisine):
     valid_cuisines= ['chinese', 'italian', 'indian', 'pizza', 'burgers']
-    #return cuisine.lower() in valid_cuisines
-    return cuisine in valid_cuisines
+    return cuisine.lower() in valid_cuisines
+    #return cuisine in valid_cuisines
     
 
 def isvalid_num_people(number_of_people):
@@ -120,7 +120,7 @@ def validate_input(slots):
     if time_input and date_input and not isvalid_time(time_input, date_input):
         return build_validation_result(
             False,
-            'time_input',
+            'dining_time',
             'You must select a time in the future.'
         )
         
@@ -204,6 +204,8 @@ def DiningSuggestionsIntent(intent_request):
     
     # call sqs
     slots = intent_request['currentIntent']['slots']
+    
+    slots['cuisine'] = slots['cuisine'].lower()
 
     queue_url = 'https://sqs.us-east-1.amazonaws.com/922059106485/chatbot-queue'
     message = json.dumps(slots) # should probably do a slots[slot_item].lower() on each slot item before sending
