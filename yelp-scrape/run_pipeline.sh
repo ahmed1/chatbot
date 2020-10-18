@@ -5,3 +5,4 @@ rm ./data/bid*
 python3 scrape.py # scrape and write each biz to a json in ./data
 python3 compile_data.py # make a master db file in ./data/db called db.json
 python3 upload_to_dynamodb.py # upload the contents from ./data/db/db.json
+python3 upload_to_elasticsearch_index.py # upload cuisine: bizId pairs to es

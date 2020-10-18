@@ -15,6 +15,7 @@ url = 'https://' + host + '/' + index + '/' + '_search'
 # Lambda execution starts here
 def lambda_handler(event, context):
     print("EVENTTT: ", event)
+
     data = event['Records'][0]['body']
 
 
@@ -32,7 +33,16 @@ def lambda_handler(event, context):
     location = data['location']
     phone_number = data['phone_number']
     zip_code = data['zip_code']
-
+    
+    # hard-coded below for testing. delete when done
+    #number_of_people = "3"
+    #name = "ted"
+    #cuisine = "pizza"
+    #dining_time = "23:00"
+    #location = "new york city"
+    #phone_number = "3473563326"
+    #zip_code = "10000"
+    
     print('EVENTTTT: ', event)
     # sys.exit()
     # Put the user query into the query DSL for more accurate search results.
@@ -40,7 +50,10 @@ def lambda_handler(event, context):
     query = {
       "query": {
         "match": {
+        #"match_all": {
           "Cuisine": cuisine
+          #"Cuisine": 'pizza' 
+          
         }
       }
     } 
@@ -59,13 +72,18 @@ def lambda_handler(event, context):
         },
         "isBase64Encoded": False
     }
-    print(r)
     # Add the search results to the response
     r = r.json()
     
+    #print(json.dumps(r))
+    
     business_id = r['hits']['hits'][0]['_source']['RestaurantID']
     
+    print('biz id is: {}'.format(business_id))
     
+    # test biz id that we know is in the dynamo table
+    #business_id = "04xHcYsqA3jCzpsX1Vs8ZQ"
+   
     # query dynamodb
     client = boto3.client('dynamodb')
     response = client.get_item(TableName='yelp-restaurants', Key = {'BusinessId' : {'S': business_id }} )
