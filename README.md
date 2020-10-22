@@ -32,7 +32,14 @@ The architecture is admittedly overkill for this application (it uses 11 differe
     
 
 ## Demo
-Insert gif of working chatbot here
+Below, a demo of a user registering for a new account and talking to the
+chatbot.  
+<img src="https://github.com/ashoukr/chatbot/blob/main/media/vid/demo.gif" width="100%" />
+
+At the end of the process, the user receives a text message which looks like
+this:  
+<img src="https://github.com/ashoukr/chatbot/blob/main/media/img/text-message.png" width="60%"/>
+
 
 ## Architecture Overview
 
@@ -69,9 +76,15 @@ We wrote a series of python scripts (and one `run_pipeline.sh` script, which exe
 We used starter code from [https://github.com/ndrppnc/cloud-hw1-starter](https://github.com/ndrppnc/cloud-hw1-starter) and did not change it much, since front-end development was not an important part of this project for us. The main thing we did was replace the sdk (`apigClient.js`) with the one we generated in API Gateway. We also added `userprofile.js` and `verifier.js`, both for the purpose of authenticating the user via Cognito.
  
 ### API Gateway
-Ahmed
+* We used the swagger API provided.
+* We used the `Enable Cores` in the UI to add proper headers for POST method to work properly.
+* However this did not add all the proper headers so we added them manually.
+    * In the `Method Response` under `OPTIONS` and `POST`, we added the following response headers for 200 response:
+        * `Access-Control-Allow-Headers`, `Access-Control-Allow-Origin`, `Access-Control-Allow-Credentials`, `Access-Control-Allow-Methods`
+    * In the `Integration Response` under `OPTIONS` and `POST`, we added the following header mappings corresponding to the above mappings in order: 
+        * 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token', '*', 'true', 'POST'
 
-### Lambda Setup
+### General Lambda Setup
 * We used the Serverless Application Model (SAM) CLI provided by Amazon to write all the lambda functions and test them locally.
 * Additionally, this allowed us to manipulate all the infrastructure for the lambda functions.
 
@@ -117,12 +130,58 @@ response = client.post_text(botName='ConceirgeBot', botAlias = 'ConceirgeBot', u
 
 * Returns body response to UI
 ### Lex
-Ahmed
-* Trained with multiple Intents -- discuss more 
+
+#### Main Intents
+* DiningSuggestionsIntent
+    * You can ask questions like "Can you help me find a restaurant" or you can give a statement like "I want to go eat with friends" or "I am hungry" which will trigger this intent.
+    * Intent requires 8 different slots: `cusine`, `name`, `location`, `zip_code`, `dining_time`, `date`, `number_of_people`, and `phone_number`. 
+        * In addition to these questions, we trained a number of corresponding utternaces it can use to extract matching information
+        * There are a maximum of 2 retries before the question is skipped.
+
+* GreetingIntent
+    * You can ask questions like "What's up" or add statements like "Hey" or "Hello" to trigger this intent
+    * Intent requires 1 slot: `name`
+        * Multiple corresponding utterances given to extract name from user input
+        * There are a miximum of 2 retries before the question is skipped.
+* ThankYouIntent
+    * Once a user says an utterance like "Thank you bot", "Thank you", etc. this intent is triggered
+    * No slots required here
+
+
+#### Code Fullfillment
+This is done by setting LF1 as an initialization and validation code hook in Lex, and using `elicit_slot` in LF0 whenever a slot input is invalid. See The next section for more info.
+    
 ### Lambda LF1
 In a nutshell, LF1 takes events from Lex, validates them, then enqueues the message to SQS. 
 
-However, the validation is a little tricky in that we have designed it to validate after each user input (mid-conversation). We feel that this is the better than validating at the conversation so that the user does not have to retype their whole list of preferences. This is done by setting LF1 as an initialization and validation code hook in Lex, and using `elicit_slot` in LF0 whenever a slot input is invalid. 
+The event is first parsed to see which intent sent it. If it's the ThankYouIntent or the GreetingIntent, LF1 will simply build a response of the following form and send it back:
+```
+# sample response for ThankYouIntent
+res = {
+    "sessionAttributes": {},
+    "dialogAction": {
+        "type": "Close",
+        "fulfillmentState": "Fulfilled",
+        "message" : {
+            "contentType" : "PlainText",
+            "content" : "No problem!"
+        }
+    }
+}    
+return res
+```
+This is the end of LF1's involvement with the ThankYouIntent and GreetingIntent.
+
+On the other hand, if the intent value is DiningSuggestionsIntent, we do some validation throughout the conversation. The validation is a little tricky in that we have designed it to validate after each user input (mid-conversation). We feel that this is the better than validating at the conversation so that the user does not have to retype their whole list of preferences. This is done by setting LF1 as an initialization and validation code hook in Lex, and using `elicit_slot` in LF0 whenever a slot input is invalid. 
+
+These are the intents LF1 validates:
+- Number of people : must be greater than 0 and less than 20
+- Phone number: must be 9 digits
+- Date: day should be either current day/any day after the current day
+- Time: greater than the current time if date is today
+- Cuisine: must be one of the 5 cuisine types (non case-sensitive): ['indian', 'italian', 'burgers','chinese', 'pizza'])
+
+If any of these are invalid, the chatbot will call `elicit_slot` to tell the user that the input is invalid and ask for another input.
 
 Once all slots are collected and validated, the message is enqueued to SQS, and a return message is sent to the user, saying that the bot will look in its directory and send them a text message in a moment with restaurant suggestions.
 
@@ -130,9 +189,36 @@ Once all slots are collected and validated, the message is enqueued to SQS, and 
 Ahmed
 
 ### Lambda LF2
-Ahmed
-* What do we need to do for the cloudwatch trigger?
-* 
+
+* CloudWatch Trigger is explained below
+
+* Once the data is obtained from SQS, we then parse it to grab all necessary fields.
+* We used the AWS4Auth to make a request to elastic search
+
+```python=
+
+region = 'us-east-1' # For example, us-west-1
+service = 'es'
+credentials = boto3.Session().get_credentials()
+awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, service, session_token=credentials.token)
+
+```
+* Then we set up query using the cuisine provided by user 
+
+```python=
+query = {
+  "query": {
+    "match": {
+      "Cuisine": cuisine
+    }
+  }
+} 
+headers = { "Content-Type": "application/json" }
+# make query and get 3 different restaurants
+r = requests.get(url, auth=awsauth, headers=headers, data=json.dumps(query))
+```
+
+* Used the RestaurantID 
 
 ### CloudWatch
 We created a CloudWatch rule which triggers LF2 once every minute. While we could have simply added a SQS trigger to LF2, we used a CloudWatch rule to have more control over polling intervals. Thus, LF2 attempts to dequeue the next item from SQS. If such an item exists (i.e. if the queue is not empty) then LF2 will get data from the ES index and the DynamoDB table, then make a recommendation to the user as a string. It will then send this string to SNS.
