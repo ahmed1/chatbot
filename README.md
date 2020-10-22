@@ -37,6 +37,7 @@ chatbot.
 
 At the end of the process, the user receives a text message which looks like
 this:  
+
 <img src="https://github.com/ashoukr/chatbot/blob/main/media/img/text_message.jpg" width="40%"/>
 
 ## Architecture Overview
@@ -48,9 +49,11 @@ locations around the world for caching content and providing fast delivery of
 the website.  
 
 Here is the flowchart for this process:  
+
 <img src="https://github.com/ashoukr/chatbot/blob/main/media/img/chatbot-codepipeline.png" />
 <hr>
-### Full Architecture Diagram
+### Full Architecture Diagram  
+
 Here is the flowchart of our full architecture diagram.  
 <img src="https://github.com/ashoukr/chatbot/blob/main/media/img/architecture-diagram.png" width="100%"/>
 
