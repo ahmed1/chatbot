@@ -81,8 +81,17 @@ def isvalid_cuisine(cuisine):
     valid_cuisines= ['chinese', 'italian', 'indian', 'pizza', 'burgers']
     return cuisine.lower() in valid_cuisines
     #return cuisine in valid_cuisines
-    
 
+    
+def isvalid_phone_number(phone_number):
+    logger.debug("phone is {}".format(phone_number))
+    logger.debug("len(phone_number) is {}".format(len(phone_number)))
+    if len(phone_number) == 10:
+        return True
+    else:
+        return False
+
+    
 def isvalid_num_people(number_of_people):
     return True if number_of_people > 0 and number_of_people < 20 else False
 
@@ -109,6 +118,7 @@ def validate_input(slots):
     number_of_people = try_ex(lambda: slots['number_of_people'])
     date_input = try_ex(lambda: slots['date'])
     time_input = try_ex(lambda:slots['dining_time'])
+    phone_number = try_ex(lambda:slots['phone_number'])
     
     if date_input and not isvalid_date(date_input):
         return build_validation_result(
@@ -121,7 +131,7 @@ def validate_input(slots):
         return build_validation_result(
             False,
             'dining_time',
-            'You must select a time in the future.'
+            'You must select a time in the future. What time would you like to dine?'
         )
         
     if number_of_people and not isvalid_num_people(safe_int(number_of_people)):
@@ -136,6 +146,13 @@ def validate_input(slots):
             False,
             'cuisine',
             'We currently do not support {} as cuisine. We only support chinese, indian, italian, pizza, and burgers at this time. Please choose from one of these cuisines. What is your preferred cuisine?'.format(cuisine)
+        )
+    
+    if phone_number and not isvalid_phone_number(phone_number):
+        return build_validation_result(
+            False,
+            'phone_number',
+            'Invalid phone number format. Please enter a 9 digit USA phone number (do not include +1) and try again.'
         )
 
     return {'isValid': True}

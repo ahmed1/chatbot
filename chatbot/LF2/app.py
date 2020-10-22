@@ -3,6 +3,7 @@ import json
 import requests
 from requests_aws4auth import AWS4Auth
 import sys
+from datetime import datetime
 region = 'us-east-1' # For example, us-west-1
 service = 'es'
 credentials = boto3.Session().get_credentials()
@@ -14,17 +15,10 @@ url = 'https://' + host + '/' + index + '/' + '_search'
 
 # Lambda execution starts here
 def lambda_handler(event, context):
-    print("EVENTTT: ", event)
 
     data = event['Records'][0]['body']
-
-
     data = data.replace('\n', ' ')
-    print('DATAAA: /{}/'.format(data), type(data))
-    
     data = dict(eval(data))
-
-    print('DATAAA: /{}/'.format(data), type(data))
 
     number_of_people = data['number_of_people']
     name = data['name']
@@ -43,8 +37,6 @@ def lambda_handler(event, context):
     #phone_number = "3473563326"
     #zip_code = "10000"
     
-    print('EVENTTTT: ', event)
-    # sys.exit()
     # Put the user query into the query DSL for more accurate search results.
     # Note that certain fields are boosted (^).
     query = {
@@ -72,32 +64,29 @@ def lambda_handler(event, context):
         },
         "isBase64Encoded": False
     }
+    
     # Add the search results to the response
     r = r.json()
     
-    #print(json.dumps(r))
-    
-    business_id = r['hits']['hits'][0]['_source']['RestaurantID']
-    
-    print('biz id is: {}'.format(business_id))
-    
-    # test biz id that we know is in the dynamo table
-    #business_id = "04xHcYsqA3jCzpsX1Vs8ZQ"
+    business_ids = []
+    for i in range (0,3):
+      business_ids.append(r['hits']['hits'][i]['_source']['RestaurantID'])
    
+    notification = "Hello {}! Here are my {} restaurant suggestions for {} people, for today at {}:\n".format(
+      name.capitalize(), 
+      cuisine.capitalize(), 
+      number_of_people, 
+      datetime.strptime(dining_time, "%H:%M").strftime("%I:%M %p")) # display as AM/PM (not 24 hour)
+    
     # query dynamodb
     client = boto3.client('dynamodb')
-    response = client.get_item(TableName='yelp-restaurants', Key = {'BusinessId' : {'S': business_id }} )
-    print("RESPONSEEE DYNAMO", response)
-
-    recom_busin = response['Item']
-
-    recom_name = recom_busin['Name']['S']
-    recom_address = recom_busin['Address']['S']
-
-    # final message for sns
-    notification = "Hello {}! Here is my {} restaurant suggestions for {} people, for today at {}: 1. {}, located at {}.".format(name.capitalize(), 
-    cuisine.capitalize(), number_of_people, dining_time, recom_name, recom_address)
-    
+    for i in range(0,3): # get info for the 3 businesses in business_ids
+      res = client.get_item(TableName='yelp-restaurants', Key = {'BusinessId' : {'S': business_ids[i] }} )
+      recom_name = res['Item']['Name']['S']
+      recom_address = res['Item']['Address']['S']
+      notification += "\n{}. {}, located at {}.".format(i+1, recom_name, recom_address)
+      
+    notification += "\n\nEnjoy your meal!"
 
     # invoke SNS
     client = boto3.client('sns')
