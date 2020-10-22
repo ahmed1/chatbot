@@ -14,6 +14,7 @@ The architecture is admittedly overkill for this application (it uses 11 differe
     - [Full Architecture Diagram](#architecture-diagram)
 3. [Indvidual Components](#individual-components)
     - [S3](#s3)
+    - [CloudFront](#cloudfront)
     - [Yelp Scraping](#yelp-scraping)
     - [Front-end](#front-end)
     - [API Gateway](#api-gateway)
@@ -23,6 +24,7 @@ The architecture is admittedly overkill for this application (it uses 11 differe
     - [Lambda LF1](#lambda-lf1)
     - [SQS](#sqs)
     - [Lambda LF2](#lambda-lf2)
+    - [CloudWatch](#cloudwatch)
     - [DynamoDB](#dynamodb)
     - [ElasticSearch](#elasticsearch)
     - [SNS](#sns)
@@ -38,11 +40,13 @@ Insert gif of working chatbot here
 We used CodePipeline to auto-deploy code from our `master` branch on GitHub to S3. We also used the CloudFront content delivery network to distribute our
 website and replicate the distribution configuration across multiple edge
 locations around the world for caching content and providing fast delivery of
-the website. Here is the flowchart for this process:
+the website.  
+
+Here is the flowchart for this process:  
 <img src="https://github.com/ashoukr/chatbot/blob/main/media/img/chatbot-codepipeline.png" />
 
 ### Full Architecture Diagram
-Here is the flowchart of our full architecture diagram.
+Here is the flowchart of our full architecture diagram.  
 <img src="https://github.com/ashoukr/chatbot/blob/main/media/img/architecture-diagram.png" width="100%"/>
 
 
@@ -51,12 +55,22 @@ Here is the flowchart of our full architecture diagram.
 ### S3
 Ahmed
 
+### CodePipeline
+The front-end is hosted in an S3 bucket. Since editing those files directly is impossible and downloading, editing, then reuploading is clumsy and inefficient, we decided to use CodePipeline. Whenever we push to our `master` branch in our GitHub repository, CodePipeline will pull those changes, then clone them to our S3 bucket. This makes for easy integration between GitHub and S3.
+
+### CloudFront
+The website source files are hosted on S3, but we also use a CDN called CloudFront to replicate configurations of the distribution to edge locations around the world, for caching content and providing fast delivery of the website.  
+
 ### Yelp Scraping
-Ted
+We wrote a series of python scripts (and one `run_pipeline.sh` script, which executes all python scripts). The python scripts scrape restaurant data from Yelp using the Yelp Fusion API, then store a subset of this data in DynamoDB and our Elasticsearch index. More information about Yelp Scraping can be found here:
+[https://github.com/ashoukr/chatbot/blob/main/yelp-scrape/README.md](https://github.com/ashoukr/chatbot/blob/main/yelp-scrape/README.md)
+
 ### Front-end
-Ted
+We used starter code from [https://github.com/ndrppnc/cloud-hw1-starter](https://github.com/ndrppnc/cloud-hw1-starter) and did not change it much, since front-end development was not an important part of this project for us. The main thing we did was replace the sdk (`apigClient.js`) with the one we generated in API Gateway. We also added `userprofile.js` and `verifier.js`, both for the purpose of authenticating the user via Cognito.
+ 
 ### API Gateway
 Ahmed
+
 ### Lambda Setup
 * We used the Serverless Application Model (SAM) CLI provided by Amazon to write all the lambda functions and test them locally.
 * Additionally, this allowed us to manipulate all the infrastructure for the lambda functions.
@@ -106,18 +120,39 @@ response = client.post_text(botName='ConceirgeBot', botAlias = 'ConceirgeBot', u
 Ahmed
 * Trained with multiple Intents -- discuss more 
 ### Lambda LF1
-Ted
+In a nutshell, LF1 takes events from Lex, validates them, then enqueues the message to SQS. 
+
+However, the validation is a little tricky in that we have designed it to validate after each user input (mid-conversation). We feel that this is the better than validating at the conversation so that the user does not have to retype their whole list of preferences. This is done by setting LF1 as an initialization and validation code hook in Lex, and using `elicit_slot` in LF0 whenever a slot input is invalid. 
+
+Once all slots are collected and validated, the message is enqueued to SQS, and a return message is sent to the user, saying that the bot will look in its directory and send them a text message in a moment with restaurant suggestions.
+
 ### SQS
 Ahmed
+
 ### Lambda LF2
 Ahmed
 * What do we need to do for the cloudwatch trigger?
 * 
+
+### CloudWatch
+We created a CloudWatch rule which triggers LF2 once every minute. While we could have simply added a SQS trigger to LF2, we used a CloudWatch rule to have more control over polling intervals. Thus, LF2 attempts to dequeue the next item from SQS. If such an item exists (i.e. if the queue is not empty) then LF2 will get data from the ES index and the DynamoDB table, then make a recommendation to the user as a string. It will then send this string to SNS.
+
 ### DynamoDB
-Ted (setup and population)
+We simply used the AWS web console to create a table. The `upload_to_dynamodb.py` script takes care of populating it with Yelp data.
+
+We populated the table by simply iterating over the list of restaurants we scraped and doing the following
+```
+restaurant["insertedAtTimestamp"] = str(datetime.datetime.now())
+table.put_item(Item=restaurant)
+```
+, where `restaurant` is the current restaurant in the iteration and `table` is the table we're inserting into.
+
+See below for more info:  
+[https://github.com/ashoukr/chatbot/blob/main/yelp-scrape/README.md](https://github.com/ashoukr/chatbot/blob/main/yelp-scrape/README.md)
+
 ### ElasticSearch
 Ahmed: Setup
-Ted: populate index
+
 
 1. Used Development and testing domain type
 
@@ -181,6 +216,16 @@ SELECT * FROM restaurants
 
 * Finally, we gave LF2 Lambda a new role that allowed it to interact with the Elastic Search Cluster.
 
+We populated the index by simply iterating over the list of restaurants we scraped and doing an `es.index(index=path, doc_type="_doc", id=str(index), body=doc)`, where `index` is the `i`th iteration and `doc` is the key:value object taking the form: 
+```
+doc = {
+    "Cuisine": restaurant["Cuisine"],
+    "RestaurantID": restaurant["BusinessId"]
+}
+```
+More info can be seen here, or by viewing the `upload_to_elastic_search.py` file: 
+[https://github.com/ashoukr/chatbot/blob/main/yelp-scrape/README.md](https://github.com/ashoukr/chatbot/blob/main/yelp-scrape/README.md)
+
 ### SNS
 Ahmed
 * Here we created a basic topic called chatbot-sms without any additional configuration (none that I can remember)
@@ -192,4 +237,7 @@ client = boto3.client('sns')
 client.publish(PhoneNumber = '+1' + phone_number, Message = notification)
 ```
 ### Cognito
-Ted
+As a fun add-on, we decided to add authentication. We created a userpool, and a new client app within that pool. Since the callback URL (where to redirect to once the user is signed in) must use https (not http), we used our CloudFront URL. We used an authorization code grant flow whereby the user receives a code via email upon registration and must enter the code on the screen to activate their account.
+
+Cognito has some nice built-in forms to handle registration and login. This is convenient in that we did not have to create a separate web page just for the form. We used one of these, as shown below:  
+<img src="https://github.com/ashoukr/chatbot/blob/main/media/img/cognito.png" />
