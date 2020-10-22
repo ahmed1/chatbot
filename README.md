@@ -38,7 +38,7 @@ chatbot.
 
 At the end of the process, the user receives a text message which looks like
 this:  
-<img src="https://github.com/ashoukr/chatbot/blob/main/media/img/text-message.png" width="60%"/>
+<img src="https://github.com/ashoukr/chatbot/blob/main/media/img/text_message.jpg" width="60%"/>
 
 
 ## Architecture Overview
