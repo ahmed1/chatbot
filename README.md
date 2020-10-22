@@ -51,7 +51,7 @@ the website.
 Here is the flowchart for this process:  
 
 <img src="https://github.com/ashoukr/chatbot/blob/main/media/img/chatbot-codepipeline.png" />
-<hr>
+
 ### Full Architecture Diagram  
 
 Here is the flowchart of our full architecture diagram.  
