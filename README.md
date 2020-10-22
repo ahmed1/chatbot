@@ -8,7 +8,6 @@ The architecture is admittedly overkill for this application (it uses 11 differe
 
 ## Table of Contents
 1. [Demo](#demo)
-    - [Demo](#demo)
 2. [Architecture Overview](#architecture-overview)
     - [Auto-Deployment](#auto-deployment)
     - [Full Architecture Diagram](#architecture-diagram)
@@ -40,7 +39,6 @@ At the end of the process, the user receives a text message which looks like
 this:  
 <img src="https://github.com/ashoukr/chatbot/blob/main/media/img/text_message.jpg" width="40%"/>
 
-
 ## Architecture Overview
 
 ### Auto-Deployment
@@ -51,7 +49,7 @@ the website.
 
 Here is the flowchart for this process:  
 <img src="https://github.com/ashoukr/chatbot/blob/main/media/img/chatbot-codepipeline.png" />
-
+<hr>
 ### Full Architecture Diagram
 Here is the flowchart of our full architecture diagram.  
 <img src="https://github.com/ashoukr/chatbot/blob/main/media/img/architecture-diagram.png" width="100%"/>
@@ -60,7 +58,9 @@ Here is the flowchart of our full architecture diagram.
 ## Individual Components
 
 ### S3
-Ahmed
+* Created 2 main buckets: `sortai.co` and `www.sortai.co` and put all frontend files there 
+* Set them up to host static website
+* Added automatic deployment with CodePipeline as discussed in the next section.
 
 ### CodePipeline
 The front-end is hosted in an S3 bucket. Since editing those files directly is impossible and downloading, editing, then reuploading is clumsy and inefficient, we decided to use CodePipeline. Whenever we push to our `master` branch in our GitHub repository, CodePipeline will pull those changes, then clone them to our S3 bucket. This makes for easy integration between GitHub and S3.
@@ -74,7 +74,7 @@ We wrote a series of python scripts (and one `run_pipeline.sh` script, which exe
 
 ### Front-end
 We used starter code from [https://github.com/ndrppnc/cloud-hw1-starter](https://github.com/ndrppnc/cloud-hw1-starter) and did not change it much, since front-end development was not an important part of this project for us. The main thing we did was replace the sdk (`apigClient.js`) with the one we generated in API Gateway. We also added `userprofile.js` and `verifier.js`, both for the purpose of authenticating the user via Cognito.
- 
+
 ### API Gateway
 * We used the swagger API provided.
 * We used the `Enable Cores` in the UI to add proper headers for POST method to work properly.
@@ -127,8 +127,9 @@ sam deploy --template-file ./packaged.yaml --stack-name chatbot-message-handler 
 client = boto3.client('lex-runtime')
 response = client.post_text(botName='ConceirgeBot', botAlias = 'ConceirgeBot', userId='string', inputText = message)
 ```
-
 * Returns body response to UI
+
+
 ### Lex
 
 #### Main Intents
@@ -186,7 +187,9 @@ If any of these are invalid, the chatbot will call `elicit_slot` to tell the use
 Once all slots are collected and validated, the message is enqueued to SQS, and a return message is sent to the user, saying that the bot will look in its directory and send them a text message in a moment with restaurant suggestions.
 
 ### SQS
-Ahmed
+* Created a chatbot-queue using the UI
+* Added necessary roles to LF1 to be able to push messages here.
+* Allowed LF2 to poll the queue every 1 minute for new messages. 
 
 ### Lambda LF2
 
@@ -218,7 +221,16 @@ headers = { "Content-Type": "application/json" }
 r = requests.get(url, auth=awsauth, headers=headers, data=json.dumps(query))
 ```
 
-* Used the RestaurantID 
+* Used the RestaurantID to obtain restaurants from dynamoDB
+```python=
+res = client.get_item(TableName='yelp-restaurants', Key = {'BusinessId' : {'S': business_ids[i] }} )
+```
+* Used SNS SDK client to to invoke an SMS message to send to the user
+
+```python=
+client = boto3.client('sns')
+client.publish(PhoneNumber='+1' + phone_number, Message = notification)
+```
 
 ### CloudWatch
 We created a CloudWatch rule which triggers LF2 once every minute. While we could have simply added a SQS trigger to LF2, we used a CloudWatch rule to have more control over polling intervals. Thus, LF2 attempts to dequeue the next item from SQS. If such an item exists (i.e. if the queue is not empty) then LF2 will get data from the ES index and the DynamoDB table, then make a recommendation to the user as a string. It will then send this string to SNS.
@@ -313,8 +325,7 @@ More info can be seen here, or by viewing the `upload_to_elastic_search.py` file
 [https://github.com/ashoukr/chatbot/blob/main/yelp-scrape/README.md](https://github.com/ashoukr/chatbot/blob/main/yelp-scrape/README.md)
 
 ### SNS
-Ahmed
-* Here we created a basic topic called chatbot-sms without any additional configuration (none that I can remember)
+* Here we created a basic topic called chatbot-sms without any additional configuration 
 * We added a new role to LF2 that allows it to communicate with this SNS topic.
 * We used boto3 SDK provided to push sns requests to this service. This instantly sends a message to the user with all the details.
 
