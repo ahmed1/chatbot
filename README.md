@@ -10,7 +10,7 @@ The architecture is admittedly overkill for this application (it uses 11 differe
 1. [Demo](#demo)
 2. [Architecture Overview](#architecture-overview)
     - [Auto-Deployment](#auto-deployment)
-    - [Full Architecture Diagram](#architecture-diagram)
+    - [Full Architecture Diagram](#full-architecture-diagram)
 3. [Indvidual Components](#individual-components)
     - [S3](#s3)
     - [CloudFront](#cloudfront)
