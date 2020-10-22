@@ -34,11 +34,11 @@ The architecture is admittedly overkill for this application (it uses 11 differe
 ## Demo
 Below, a demo of a user registering for a new account and talking to the
 chatbot.  
-<img src="https://github.com/ashoukr/chatbot/blob/main/media/vid/demo.gif" width="100%" />
+<img src="https://github.com/ashoukr/chatbot/blob/main/media/vid/demo.gif" width="70%" />
 
 At the end of the process, the user receives a text message which looks like
 this:  
-<img src="https://github.com/ashoukr/chatbot/blob/main/media/img/text_message.jpg" width="60%"/>
+<img src="https://github.com/ashoukr/chatbot/blob/main/media/img/text_message.jpg" width="40%"/>
 
 
 ## Architecture Overview
