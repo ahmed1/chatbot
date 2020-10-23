@@ -39,6 +39,9 @@ def lambda_handler(event, context):
       message = response['Messages'][0]
       receipt_handle = message['ReceiptHandle']
       
+      #print(message)
+      #exit(1)
+      
       # Delete received message from queue
       sqs.delete_message(
           QueueUrl=queue_url,
@@ -62,6 +65,7 @@ def lambda_handler(event, context):
       location = data['location']
       phone_number = data['phone_number']
       zip_code = data['zip_code']
+      date = data['date']
       
       # hard-coded below for testing. delete when done
       #number_of_people = "3"
@@ -107,10 +111,11 @@ def lambda_handler(event, context):
       for i in range (0,3):
         business_ids.append(r['hits']['hits'][i]['_source']['RestaurantID'])
      
-      notification = "Hello {}! Here are my {} restaurant suggestions for {} people, for today at {}:\n".format(
+      notification = "Hello {}! Here are my {} restaurant suggestions for {} people, for {} at {}:\n".format(
         name.capitalize(), 
         cuisine.capitalize(), 
         number_of_people, 
+        date,
         datetime.strptime(dining_time, "%H:%M").strftime("%I:%M %p")) # display as AM/PM (not 24 hour)
       
       # query dynamodb
