@@ -4,6 +4,8 @@ import requests
 from requests_aws4auth import AWS4Auth
 import sys
 from datetime import datetime
+#import random
+
 region = 'us-east-1' # For example, us-west-1
 service = 'es'
 credentials = boto3.Session().get_credentials()
@@ -39,8 +41,6 @@ def lambda_handler(event, context):
       message = response['Messages'][0]
       receipt_handle = message['ReceiptHandle']
       
-      #print(message)
-      #exit(1)
       
       # Delete received message from queue
       sqs.delete_message(
@@ -57,7 +57,6 @@ def lambda_handler(event, context):
       data = data.replace('\n', ' ')
       data = dict(eval(data))
       
-  
       number_of_people = data['number_of_people']
       name = data['name']
       cuisine = data['cuisine']
@@ -75,25 +74,33 @@ def lambda_handler(event, context):
       #location = "new york city"
       #phone_number = "3473563326"
       #zip_code = "10000"
+      #date = "2020-10-24"
       
       # Put the user query into the query DSL for more accurate search results.
       # Note that certain fields are boosted (^).
       query = {
         "query": {
-          "match": {
-          #"match_all": {
-            "Cuisine": cuisine
-            #"Cuisine": 'pizza' 
-            
+          "function_score": {
+            "query": {
+              "match": {
+                #"match_all": {
+                "Cuisine": cuisine
+              }
+            },
+            "random_score": {} # default seed is current timestamp
           }
         }
-      } 
+      }
+      
   
       # ES 6.x requires an explicit Content-Type header
       headers = { "Content-Type": "application/json" }
   
+      print('got here')
+      
       # Make the signed HTTP request
       r = requests.get(url, auth=awsauth, headers=headers, data=json.dumps(query))
+      #print(r)
   
       # Create the response and add some extra content to support CORS
       response = {
@@ -128,6 +135,8 @@ def lambda_handler(event, context):
         
       notification += "\n\nEnjoy your meal!"
   
+      print(notification)
+      
       # invoke SNS
       client = boto3.client('sns')
       client.publish(PhoneNumber='+1' + phone_number, Message = notification)
