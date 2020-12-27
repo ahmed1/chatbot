@@ -79,6 +79,7 @@ We wrote a series of python scripts (and one `run_pipeline.sh` script, which exe
 We used starter code from [https://github.com/ndrppnc/cloud-hw1-starter](https://github.com/ndrppnc/cloud-hw1-starter) and did not change it much, since front-end development was not an important part of this project for us. The main thing we did was replace the sdk (`apigClient.js`) with the one we generated in API Gateway. We also added `userprofile.js` and `verifier.js`, both for the purpose of authenticating the user via Cognito.
 
 ### API Gateway
+* Name: /chatbot
 * We used the swagger API provided.
 * We used the `Enable Cores` in the UI to add proper headers for POST method to work properly.
 * However this did not add all the proper headers so we added them manually.
